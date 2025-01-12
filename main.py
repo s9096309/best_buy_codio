@@ -3,6 +3,9 @@ from products import Product
 
 
 def main():
+    """
+    Main function to initialize the store and display the menu-driven interface.
+    """
     # Initialize the store with products
     product_list = [
         Product("MacBook Air M2", price=1450, quantity=100),
@@ -25,7 +28,7 @@ Store Menu:
 4. Quit
 """)
         try:
-            ask_user = int(input("Please choose a number:"))
+            ask_user = int(input("Please choose a number: "))
 
             if ask_user == 1:
                 # List all products in store
@@ -51,17 +54,21 @@ Store Menu:
                 while True:
                     try:
                         product_num = int(
-                            input(f"Choose a product number (1 to {len(available_products)}), or 0 to finish: "))
+                            input(f"Choose a product number (1 to {len(available_products)}), or 0 to finish: ")
+                        )
                         if product_num == 0:
                             break  # End the order
                         if 1 <= product_num <= len(available_products):
-                            quantity = int(input(
-                                f"How many of {available_products[product_num - 1].name} would you like to order? "))
+                            quantity = int(
+                                input(f"How many of {available_products[product_num - 1].name} would you like to order? ")
+                            )
                             product = available_products[product_num - 1]
 
                             # Check if the requested quantity exceeds available stock
                             if quantity > product.get_quantity():
-                                print(f"Not enough {product.name} in stock. Only {product.get_quantity()} available.")
+                                print(
+                                    f"Not enough {product.name} in stock. Only {product.get_quantity()} available."
+                                )
                             else:
                                 order_items.append((product, quantity))
                         else:
@@ -84,10 +91,13 @@ Store Menu:
                 print("Thanks for your visit at Best Buy!")
                 break
 
+            else:
+                print("Invalid choice. Please select a number between 1 and 4.")
+
         except ValueError:
             print("Invalid input! Please enter a number between 1 and 4.")
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Unexpected error: {e}")
 
 
 if __name__ == "__main__":
