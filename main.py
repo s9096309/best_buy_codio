@@ -1,21 +1,6 @@
 from store import Store
 from products import Product
 
-def main():
-    # Initialize the store with products
-    product_list = [
-        Product("MacBook Air M2", price=1450, quantity=100),
-        Product("Bose QuietComfort Earbuds", price=250, quantity=500),
-        Product("Google Pixel 7", price=500, quantity=250),
-    ]
-
-    # Open the store
-    store = Store(product_list)
-
-
-from store import Store
-from products import Product
-
 
 def main():
     # Initialize the store with products
@@ -28,6 +13,7 @@ def main():
     # Open the store
     store = Store(product_list)
 
+    # Start the menu-driven interface
     while True:
         print("""
 Store Menu:
@@ -35,7 +21,7 @@ Store Menu:
 
 1. List all products in store
 2. Show total amount in store
-3. Make an order
+3. Place an order
 4. Quit
 """)
         try:
@@ -57,26 +43,39 @@ Store Menu:
                 order_items = []
 
                 # Display available products
-                for index, product in enumerate(store.get_all_products(), start=1):
+                available_products = store.get_all_products()
+                for index, product in enumerate(available_products, start=1):
                     print(f"{index}. {product.show()}")  # Display each product
 
                 # Ask user to select products and quantities
                 while True:
-                    product_num = int(
-                        input(f"Choose a product number (1 to {len(store.get_all_products())}), or 0 to finish: "))
-                    if product_num == 0:
-                        break  # End the order
-                    if 1 <= product_num <= len(store.get_all_products()):
-                        quantity = int(input(
-                            f"How many of {store.get_all_products()[product_num - 1].name} would you like to order? "))
-                        order_items.append((store.get_all_products()[product_num - 1], quantity))
-                    else:
-                        print("Invalid product number, try again.")
+                    try:
+                        product_num = int(
+                            input(f"Choose a product number (1 to {len(available_products)}), or 0 to finish: "))
+                        if product_num == 0:
+                            break  # End the order
+                        if 1 <= product_num <= len(available_products):
+                            quantity = int(input(
+                                f"How many of {available_products[product_num - 1].name} would you like to order? "))
+                            product = available_products[product_num - 1]
+
+                            # Check if the requested quantity exceeds available stock
+                            if quantity > product.get_quantity():
+                                print(f"Not enough {product.name} in stock. Only {product.get_quantity()} available.")
+                            else:
+                                order_items.append((product, quantity))
+                        else:
+                            print("Invalid product number, try again.")
+                    except ValueError:
+                        print("Please enter a valid number.")
 
                 if order_items:
                     # Process the order and display the total cost
-                    order_cost = store.order(order_items)
-                    print(f"Order placed successfully! Total cost: $ {order_cost}")
+                    try:
+                        order_cost = store.order(order_items)
+                        print(f"Order placed successfully! Total cost: $ {order_cost}")
+                    except Exception as e:
+                        print(f"Error processing order: {e}")
                 else:
                     print("No items were selected for the order.")
 
