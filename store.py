@@ -34,13 +34,11 @@ class Store:
             # Check if the product is active
             if not product.is_active():
                 raise Exception(f"Product {product.name} is inactive and cannot be ordered.")
-
             # Check if the requested quantity is available
             if product.get_quantity() < quantity:
                 raise Exception(
                     f"Not enough quantity of {product.name} available. "
                     f"Requested: {quantity}, Available: {product.get_quantity()}")
-
             # Reduce the quantity and calculate the cost
             total_cost += product.buy(quantity)
         return total_cost
