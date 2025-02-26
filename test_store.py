@@ -34,6 +34,7 @@ def test_get_all_products():
     assert len(active_products) == 3
     assert set(active_products) == {products[0], products[2]}
     assert products[1] not in active_products
+
 def test_order_valid():
     products = [
         Product("Product 1", 10, 5),
