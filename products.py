@@ -113,3 +113,7 @@ class Product:
             self.deactivate()  # Only deactivate when quantity reaches zero
 
         return quantity * self.price  # Return total cost
+
+class Nonstockedproducts(Product):
+    def __init__(self,name, price, quantity=0):
+        super().__init__(name, price)
