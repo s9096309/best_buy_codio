@@ -82,8 +82,7 @@ Store Menu:
                 if order_items:
                     # Process the order and display the total cost
                     try:
-                        order_cost = store.order(order_items)
-                        print(f"Order placed successfully! Total cost: $ {order_cost}")
+                        store.order(order_items) # Order function now prints the order details.
                     except ValueError as e:
                         print(f"Error processing order: {e}")
                     except Exception as e:

@@ -28,8 +28,8 @@ class SecondHalfPrice(Promotion):
         super().__init__(name)
 
     def apply_promotion(self, product, quantity: int) -> float:
-        full_price_items = quantity // 2
-        half_price_items = quantity % 2
+        full_price_items = quantity // 2 + (quantity % 2)
+        half_price_items = quantity // 2
         return (full_price_items * product.price) + (half_price_items * product.price * 0.5)
 
 class BuyXGetYFree(Promotion):
@@ -41,8 +41,9 @@ class BuyXGetYFree(Promotion):
         self.y = y
 
     def apply_promotion(self, product, quantity: int) -> float:
-        free_items = (quantity // (self.x + self.y)) * self.y
-        paid_items = quantity - free_items
+        total_sets = quantity // (self.x + self.y)
+        remaining_items = quantity % (self.x + self.y)
+        paid_items = total_sets * self.x + min(remaining_items, self.x)
         return paid_items * product.price
 
 class Product:
@@ -55,7 +56,7 @@ class Product:
         self.price = price
         self.quantity = quantity
         self.active = True
-        self.promotion = None  # Add promotion attribute
+        self.promotion = None
 
     def get_quantity(self) -> int:
         return self.quantity
@@ -77,7 +78,14 @@ class Product:
         self.active = False
 
     def show(self) -> str:
-        promotion_info = f", Promotion: {self.promotion.name}" if self.promotion else ""
+        promotion_info = ""
+        if self.promotion:
+            if isinstance(self.promotion, PercentageDiscount):
+                promotion_info = f", Promotion: {self.promotion.name} ({self.promotion.discount_percentage * 100}%)"
+            elif isinstance(self.promotion, BuyXGetYFree):
+                promotion_info = f", Promotion: {self.promotion.name} (Buy {self.promotion.x} Get {self.promotion.y} Free)"
+            else:
+                promotion_info = f", Promotion: {self.promotion.name}"
         return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}{promotion_info}"
 
     def buy(self, quantity: int) -> float:
@@ -104,10 +112,17 @@ class Product:
 class NonStockedProduct(Product):
     """A product that is not stocked (e.g., a license)."""
     def __init__(self, name: str, price: float):
-        super().__init__(name, price, 0)  # Quantity always 0
+        super().__init__(name, price, 0)
 
     def show(self) -> str:
-        promotion_info = f", Promotion: {self.promotion.name}" if self.promotion else ""
+        promotion_info = ""
+        if self.promotion:
+            if isinstance(self.promotion, PercentageDiscount):
+                promotion_info = f", Promotion: {self.promotion.name} ({self.promotion.discount_percentage * 100}%)"
+            elif isinstance(self.promotion, BuyXGetYFree):
+                promotion_info = f", Promotion: {self.promotion.name} (Buy {self.promotion.x} Get {self.promotion.y} Free)"
+            else:
+                promotion_info = f", Promotion: {self.promotion.name}"
         return f"{self.name}, Price: {self.price}, (Non-Stocked){promotion_info}"
 
     def buy(self, quantity):
@@ -119,15 +134,21 @@ class NonStockedProduct(Product):
             return quantity * self.price
 
 class LimitedProduct(Product):
-    """A product with a maximum purchase quantity.
-    """
+    """A product with a maximum purchase quantity."""
     def __init__(self, name: str, price: float, quantity: int, maximum: int):
         super().__init__(name, price, quantity)
         self.maximum = maximum
 
-    def show(self) -> str:
-        promotion_info = f", Promotion: {self.promotion.name}" if self.promotion else ""
-        return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}, Maximum: {self.maximum}{promotion_info}"
+    def show(self):
+        promotion_info = ""
+        if self.promotion:
+            if isinstance(self.promotion, PercentageDiscount):
+                promotion_info = f", Promotion: {self.promotion.name} ({self.promotion.discount_percentage * 100}%)"
+            elif isinstance(self.promotion, BuyXGetYFree):
+                promotion_info = f", Promotion: {self.promotion.name} (Buy {self.promotion.x} Get {self.promotion.y} Free)"
+            else:
+                promotion_info = f", Promotion: {self.promotion.name}"
+        return f"{self.name}, Price: ${self.price}, Quantity: {self.quantity}{promotion_info}, Maximum: {self.maximum}"
 
     def buy(self, quantity: int) -> float:
         if quantity > self.maximum:
