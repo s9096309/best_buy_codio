@@ -62,18 +62,22 @@ Store Menu:
                         if product_num == 0:
                             break  # End the order
                         if 1 <= product_num <= len(available_products):
-                            quantity = int(
-                                input(f"How many of {available_products[product_num - 1].name} would you like to order? ")
-                            )
                             product = available_products[product_num - 1]
-
-                            # Check if the requested quantity exceeds available stock
-                            if quantity > product.get_quantity():
-                                print(
-                                    f"Not enough {product.name} in stock. Only {product.get_quantity()} available."
-                                )
-                            else:
+                            # Bypassing quantity check for NonStockedProduct here.
+                            if isinstance(product, NonStockedProduct):
+                                quantity = int(input(f"How many of {product.name} would you like to order? "))
                                 order_items.append((product, quantity))
+                            else:
+                                quantity = int(
+                                    input(f"How many of {product.name} would you like to order? ")
+                                )
+                                # Check if the requested quantity exceeds available stock
+                                if quantity > product.get_quantity():
+                                    print(
+                                        f"Not enough {product.name} in stock. Only {product.get_quantity()} available."
+                                    )
+                                else:
+                                    order_items.append((product, quantity))
                         else:
                             print("Invalid product number, try again.")
                     except ValueError:

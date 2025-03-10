@@ -1,5 +1,5 @@
 from typing import List
-from products import Product, PercentageDiscount, BuyXGetYFree
+from products import Product, PercentageDiscount, BuyXGetYFree, NonStockedProduct
 
 class Store:
     def __init__(self, products: List[Product]):
@@ -30,10 +30,17 @@ class Store:
         """
         total_cost = 0
         order_details = []
+        consolidated_order = {}  # Dictionary to consolidate quantities
         for product, quantity in shopping_list:
+            if product in consolidated_order:
+                consolidated_order[product] += quantity
+            else:
+                consolidated_order[product] = quantity
+
+        for product, quantity in consolidated_order.items():
             if not product.is_active():
                 raise Exception(f"Product {product.name} is inactive and cannot be ordered.")
-            if product.get_quantity() < quantity:
+            if not isinstance(product, NonStockedProduct) and product.get_quantity() < quantity:
                 raise Exception(
                     f"Not enough quantity of {product.name} available. "
                     f"Requested: {quantity}, Available: {product.get_quantity()}")
@@ -41,22 +48,28 @@ class Store:
             total_cost += cost
             if product.promotion:
                 original_cost = product.price * quantity
-                discount = original_cost - cost
+                if isinstance(product.promotion, BuyXGetYFree):
+                    total_sets = quantity // (product.promotion.x + product.promotion.y)
+                    free_items = total_sets * product.promotion.y
+                    remaining_items = quantity % (product.promotion.x + product.promotion.y)
+                    if remaining_items >= product.promotion.x:
+                        free_items += min(remaining_items // product.promotion.x, product.promotion.y)
+                    discount = free_items * product.price
+                else:
+                    discount = original_cost - cost
+
                 if isinstance(product.promotion, PercentageDiscount):
                     discount_percentage = product.promotion.discount_percentage * 100
                     order_details.append(
                         f"Bought {quantity} {product.name} for ${cost:.2f} (saved ${discount:.2f} with promotion \"{product.promotion.name} ({discount_percentage:.0f}%)\")")
                 elif isinstance(product.promotion, BuyXGetYFree):
-                    # Correct discount calculation for BuyXGetYFree
                     total_sets = quantity // (product.promotion.x + product.promotion.y)
-                    remaining_items = quantity % (product.promotion.x + product.promotion.y)
                     free_items = total_sets * product.promotion.y
-                    # Check if there are remaining items that qualify for free items.
+                    remaining_items = quantity % (product.promotion.x + product.promotion.y)
                     if remaining_items >= product.promotion.x:
                         free_items += min(remaining_items // product.promotion.x, product.promotion.y)
-                    discount = free_items * product.price
                     order_details.append(
-                        f"Bought {quantity} {product.name} for ${cost:.2f} (saved ${discount:.2f} with promotion \"{product.promotion.name}\")")
+                        f"Bought {quantity} {product.name}, got {free_items} for free. Saved ${discount:.2f} with promotion \"{product.promotion.name} (Buy {product.promotion.x} Get {product.promotion.y} Free)\"")
 
                 else:
                     order_details.append(
